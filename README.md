@@ -1,1 +1,1 @@
-# STA304-paper1
+# STA304-paper
