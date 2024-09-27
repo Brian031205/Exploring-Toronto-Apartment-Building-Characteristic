@@ -10,4 +10,4 @@ paper contains the files used to generate the paper, including the Quarto docume
 scripts contains the R scripts used to simulate, download and clean data
 
 # LLM Usage
-No llm used.
+No LLM used.
