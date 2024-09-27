@@ -1,0 +1,175 @@
+---
+title: "Exploring Apartment Building Charateristic: An Analysis of Apartment Building Trends (1950-2024)"
+author: "Bolin Shen"
+date: "September 21, 2024"
+date-format: "long" 
+abstract: "This paper analyzes the relationship between building characteristics such as year built, number of units, number of storeys, and property type and their impact on building evaluation scores. Using data from OpenDataToronto, visualizations and statistical models to reveal trends in how these variables interact, showing that older buildings typically have fewer units and storeys compared to newer ones. Visualization shows that property type also influences building evaluation scores and development patterns over time. These findings provide significant insights into urban development trends and building performance, offering valuable implications for future real estate planning and infrastructure management."
+
+thanks: "Code and data supporting this analysis is available at: https://github.com/Brian031205/Exploring-Toronto-Apartment-Building-Characteristic"
+
+format: pdf
+toc: true
+number-sections: true
+bibliography: references.bib
+---
+
+```{r}
+#| message: false
+#| echo: false
+#| warning: false
+
+
+# load packages
+library(tidyverse)
+library(knitr)
+library(janitor)
+library(here)
+library(dplyr)
+
+# read the cleaned data
+data <- read_csv(
+  file = here("data/analysis_data/cleaned_data.csv"),
+  show_col_types = FALSE
+)
+
+```
+{{< pagebreak >}}
+# Introduction
+The City of Toronto works to ensure that tenants live in safe, well-maintained buildings through the RentSafeTO: Apartment Building Standards Program. RentSafeTO aims to ensure that building owners and operators comply with building maintenance standards and that tenants understand their rights and responsibilities [@ApartmentBuildingStandards].
+
+Apartment Building Standards is a bylaw enforcement program established in 2017 to ensure that owners and operators of apartment buildings with three or more storeys or 10 or more units comply with building maintenance standards. Every year, the City compiles a list of all buildings that require an evaluation. A bylaw enforcement officer is assigned and building owner/operators are notified of the upcoming evaluation. Any new buildings that registered for the RentSafeTO program will be evaluated in the current evaluation cycle year.The evaluation is scheduled so that the property owner, or a designate can be present to provide the bylaw enforcement officer access to locked common areas and/or facility amenities. During evaluations, Bylaw Enforcement Officers inspect common areas, mechanical and security systems, parking and exterior grounds. In 2023, the number of evaluation categories is increased to 50 and allocating a weight to the category. The Bylaw Enforcement Officer will take notes and photographs of their inspection. After the inspection, the total building evaluation score is calculated and made available to the building owner and operator to review and post on the Tenant Notification Board. If any violations are found that are considered to be health or life safety concerns, the officer will issue an Order to Comply or Notice of Violation. Following the evaluation, the building owner/operator will be provided with a report of the inspection findings and the building’s evaluation score through the RentSafeTO Portal. Details about the most recent building evaluation must be posted on the Tenant Notification Board [@ApartmentBuildingStandards].
+
+The study aims to offer insights into trends and preferences of apartment type as well as the apartment evaluation score in Toronto from 1950 to 2024, focusing on various types of relationship between different characteristic of the building. Provide significant insights into urban development trends and building performance, offering valuable implications for future real estate planning and infrastructure management. The data used are obtained from the Open Data Toronto Portal, accessed through the library `opendatatoronto` [@rOpenDataToronto] in a reproducible way. The raw data was cleaned to the dataset, which covers various characteristic and the evaluation score of the building from 1950, by the open-source statistical programming language R [@r], and then analyzed using `tidyverse` [@rTidyverse], `ggplot2` [@rGgplot2], `dplyr` [@rDplyr], `readr` [@rReadr], `tibble` [@rTibble], `janitor` [@rJanitor] and `knitr` [@rKnitr]. 
+
+# Data
+
+## Data Sample
+```{r}
+#| message: false
+#| echo: false
+#| warning: false
+#| label: tbl-1
+#| tbl-cap: "Toronto Apartment Building (1950-2024)"
+
+# create table of sample data
+sample_data <- head(data, 8)
+sample_data |> kable(
+    col.names = c("Year Built", "Building Evaluation Score", "# Storeys", "# Units", "Property Type"),
+    booktabs = TRUE
+    )
+```
+
+@tbl-1 provides sample data on apartment buildings in Toronto built between 1950 and 2024, providing several key characteristics for each building. Year Built is the year the building was constructed. Building Evaluation Score is a score (out of 100) assessing the building's overall condition and quality, evaluation is conducted by the city government of Toronto. Number of Storeys is the number of floors in the building. Stories are separated by one another when there is a large change in elevation or level that requires structure changes (like between floors) [@Novesta]. Number of Units is the total number of apartment units within the building. A housing unit is a single unit within a larger structure that can be used by an individual or household to eat, sleep, and live. The unit can be in any type of residence, such as a house, apartment, or mobile home, and may also be a single unit in a group of rooms [@Investopedia]. Property Type is the type of ownership or management, categorized as Private, TCHC (Toronto Community Housing Corporation), or Social Housing. An apartment building of private ownership refers to a residential building where the ownership is held by individuals, private companies, or real estate investors, rather than by government agencies or non-profit organizations. These buildings can be used for rental purposes or sold as individual units (such as condominiums). The primary goal of private ownership is often to generate income through rent or appreciation in property value. An apartment building of social housing refers to a residential building owned and managed by government agencies or non-profit organizations, with the primary goal of providing affordable housing for low-income individuals and families. Social housing is housing that is offered at below market rates so that it is more affordable. Social housing is typically provided by organizations whose mandates are to offer affordable housing. Rents are typically subsidized by public sources (be they federal, provincial/territorial, or municipal) so that rents can be maintained at a level that is affordable to the tenants. Rents are usually calculated using a "rent geared to income" model that calculates rent as a manageable proportion of a tenant's income [@SocialHousing]. In contrast to private ownership, where profitability is a primary goal, social housing focuses on providing stable and affordable housing solutions for vulnerable populations. While social housing is meant to provide safe and stable housing, the quality and upkeep can vary. Some social housing developments may face issues related to maintenance or funding shortages, but the focus is on ensuring long-term residency rather than profit generation [@SocialHousing]. An apartment building of Toronto Community Housing Corporation (TCHC) refers to residential buildings owned and managed by TCHC, which is the largest social housing provider in Canada. TCHC is a public agency that offers affordable housing to low- and moderate-income residents in Toronto, with a focus on providing safe and well-maintained living spaces for people who may not be able to afford market-rate rents [@TCHC]. 
+
+## Measurement
+```{r}
+#| message: false
+#| echo: false
+#| warning: false
+#| label: fig-1
+#| fig-cap: "Number of Units of Apartment Buildings Over Year"
+
+# create scatter plot to analysis number of units vs property type over years
+ggplot(data, aes(x = YEAR_BUILT, y = CONFIRMED_UNITS, color = PROPERTY_TYPE)) +
+  geom_point(size = 0.4) +
+  geom_smooth(method = "lm", se = TRUE, size = 0.4) +
+  labs(
+       x = "Year Built",
+       y = "Number of Units",
+       color = "Property Type") +
+  theme_minimal()
+
+
+```
+@fig-1 is a plot graph with x-axis being the apartment building built year from 1950 to 2024, y-axis being the number of units within the apartment building, each dot represent an apartment building and different color represent its property type (private, social housing, tchc). @fig-1 illustrates the trend of total unit number among different type of apartment buildings over years. The visualization shows that the unit number of private apartment building increase over year, the unit number of social housing and tchc slowly decrease over years, it is shown that the highest unit number is near 800 units owned by private. Over the years, the number of units in apartment buildings in Toronto has experienced significant changes due to various policy changes and housing trends. The peak of apartment construction occurred in the post-war era from the 1950s to the mid-1970s, when over 20,000 new rental units were built annually. However, this trend dramatically slowed after the introduction of rent control legislation in 1975, which reduced the profitability of building new rental properties. In more recent decades, especially since the early 2000s, the city has seen a resurgence in private rental development, with luxury rentals becoming more common, though the number of new rental units per year is still much lower than in previous decades. Today, new apartment construction tends to add only a few thousand units per year [@blogTO].
+
+```{r}
+#| message: false
+#| echo: false
+#| warning: false
+#| label: fig-2
+#| fig-cap: "Number of Storeys of Apartment Buildings Over Year"
+
+# create scatter plot to analysis number of storeys vs property type over years
+ggplot(data, aes(x = YEAR_BUILT, y = CONFIRMED_STOREYS, color = PROPERTY_TYPE)) +
+  geom_point(size = 0.8) +
+  geom_smooth(method = "lm", se = TRUE, size = 0.8) +
+  labs(
+       x = "Year Built",
+       y = "Number of Storeys",
+       color = "Property Type") +
+  theme_minimal()
+```
+@fig-2 is a plot graph with x-axis being the apartment building built year from 1950 to 2024, y-axis being the number of storeys of the apartment building, each dot represent an apartment building and different color represent its property type (private, social housing, tchc). @fig-2 illustrates the trend of storey number among different type of apartment buildings over years. The visualization shows that the storey number of private apartment building increase over years, the storey number of social housing and tchc slowly decrease or remain the same over year. High-rise buildings are typically more than thirteen stories. There is no set number on how many total stories a high-rise building can have [@Novesta]. @fig-2 shows that the high-rise buildings were mostly owned by private over the years. Tall buildings have been part of Toronto’s urban landscape since the early twentieth century. The form of tall buildings in Toronto continuously evolved, responding to changes in technology, market demand, transportation choice, development economics, settlement patterns, planning controls, and design trends. In the 1950s, eight to ten storey concrete frame apartments were built on single lots along streets such as Jarvis, Dunn Avenue, and St. George. By the 1960s, new construction technology and changing ideals in city planning resulted in taller buildings and larger-scale development, such as the TD Centre, became the symbols of the rising economic power of Toronto [@TallBuilding]. From @fig-1 and @fig-2, it is shown that both the unit number and the storeys number of private apartment building increase over the years, however the unit number and storeys number of social housing and tchc apartment building tend to decrease over the years. There is sufficient evidence to show that the private apartment buildings are getting bigger and taller, however social housing and tchc apartment buildings are getting smaller over the years.
+
+
+```{r}
+#| message: false
+#| echo: false
+#| warning: false
+#| label: fig-3
+#| fig-cap: "Count of Apartment Buildings Over Year"
+
+# Create bar graph to count buildings over years
+ggplot(data, aes(x = YEAR_BUILT, fill = PROPERTY_TYPE)) +
+  geom_bar(position = "dodge") +
+  labs(x = "Year Built", y = "Count",
+       color = "Property Type",
+       fill = "Property Type") +
+  theme_minimal()
+
+```
+
+@fig-3 illustrates the count of buildings in Toronto by property type (Private, Social Housing, TCHC) over the years from 1950 to 2025. The x-axis represents the built year of the buildings from 1950 to 2025, the y-axis represents the number of buildings built in a particular year. Different color of bar represent the property type of the buildings, each bar is interpret as the total number of particular type of building built in that particular year. @fig-3 illustrate that a large amount of private apartment building were constructed from 1950 to 1975 with highest number reached in 1960. Most of the Social Housing apartment buildings were built after 1975 while the private apartment buildings significantly reduced. This is due to the Toronto apartment boom began in the 1950s, driven by a combination of rapid urban growth and post-war immigration. This period saw the rise of mid-century modern apartment buildings, which provided efficient housing for a swelling population. By the 1960s, Toronto had become a hub for multi-unit residential construction, largely driven by Jewish immigrants from Europe. These developers helped build around 500,000 rental units between 1952 and 1975. Their efforts were pivotal in shaping the city’s landscape, creating dense clusters of apartment towers in areas like Yonge and Eglinton [@Urbaneer] [@REM]. By the end of the boom in the mid-1970s, however, new housing options such as condominiums and low-rise subdivisions in the outer suburbs were becoming available [@WAcontent]. @fig-3 highlights the trend in Toronto’s housing development. Private development was dominant in the early decades, with more affordable and public housing options becoming significant later, as the government and public organizations stepped in to meet the needs of low-income residents. Over time, the emphasis has shifted from new construction to the maintenance and upgrading of existing social housing stock, particularly within TCHC, reflecting the challenges of aging infrastructure in the city [@Wiki]. However, the private apartment buildings start slowly rising again around 2015, this is due to the population growth. According to the Canada Mortgage and Housing Corporation's inaugural Housing Supply Report, apartment housing is dominating construction in Canada's three largest cities of Toronto, Vancouver and Montreal, due to their growing housing markets, as well as additional land and bylaw constraints that contribute to rising prices. In 2021, there were 30,237 condo units started in Toronto, a 7.7% increase over 2020. There were 36,723 units of housing completed in Toronto last year, a 19% increase from 2020, which is about commensurate with the 20-year average of 35,336. There were 41,898 housing starts in Toronto in 2021, which was higher than the 38,158 20-year average. The majority of condo apartment starts were in the City of Toronto, while ground-related homes were mainly constructed outside of the urban core. Toronto prevails in the construction of high-rise apartment buildings with hundreds of units (includes units for rent or for ownership) [@Storeys].
+
+
+```{r}
+#| message: false
+#| echo: false
+#| warning: false
+#| label: fig-4
+#| fig-cap: "Apartment Building Evaluation Score Over the Years"
+
+# group the data by property type and year built and then calculate its
+# building evaluation score mean
+
+data_grouped <- data |>
+  group_by(PROPERTY_TYPE, YEAR_BUILT) |>
+  summarise(mean_score = mean(CURRENT_BUILDING_EVAL_SCORE))
+
+# create scatter plot to analysis the change of building evaluation score for different apartment # building type over years
+
+ggplot(data_grouped, aes(x = YEAR_BUILT, y = mean_score, color = PROPERTY_TYPE)) +
+  geom_point(size = 2) +
+  geom_smooth(method = "lm", se = TRUE, size = 0.8) +
+  labs(
+       x = "Year Built",
+       y = "Building Evaluation Score Mean",
+       color = "Property Type") +
+  theme_minimal()
+```
+@fig-4 illustrates the Building Evaluation Score for different type of apartment buildings over the years in Toronto. The x-axis represents the year the buildings were constructed and the y-axis shows the building evaluation score mean. Different colors are used to distinguish between property types. Each dot represents the particular type of building's evaluation score mean in that year. Visualization shows that the evaluation score for private and tchc apartment buildings 
+increase over the years, however social housing apartment buildings evaluation score increased slightly compared to the other two. Overall, there is a upward trend in evaluation scores as the built year increases. More recent buildings, particularly those built after 2000, tend to have higher evaluation scores. This indicate that newer buildings benefit from improved construction standards, better maintenance, and more modern amenities compared to older buildings.
+
+
+## Conclusion
+The analysis has explored the evolution of apartment buildings in Toronto from 1950 to 2024, analyzing the relationship between various building characteristics and the change of the building evaluation scores over the years. Key findings from the analysis include: 
+   
+1. Trends in Units and Storeys: Private apartment buildings have seen a consistent increase in both the number of units and storeys over time, reflecting the growing demand for larger, taller buildings in urban areas. On the other hand, social housing and TCHC buildings have shown a decline or stagnation in these dimensions, it may reflect limitations in funding or changes in housing policy. This behavior indicates the fast growing of the urban city with more luxury tall apartment buildings constructed. This may benefit the high-incomers as the living environment become more comfortable, however it may not benefit the low-incomers as they do not have the ability to purchase these expensive apartment.  
+    
+2. Building Evaluation Scores: There is a clear upward trend in building evaluation scores of apartment buildings, particularly for private and TCHC, suggesting that newer buildings benefit from improved construction standard, better maintenance, and more modern amenities. Social housing also showing some improvement in scores, however it has not experienced a dramatic rise, this may reflect the lack of resources for maintenance and renewal.
+
+Based on these findings, here are some suggestions for future policies:  
+  
+1. Investment in Social Housing and TCHC Maintenance: The city should prioritize maintaining and upgrading these units to ensure that low-income residents and vulnerable people continue to have  safe and quality living environment. This could be done by additional funds for renewing and modernizing outdated infrastructure.   
+   
+2. Sustainable High-Rise Development:
+The increase in private high-rise buildings highlights the need for energy efficient urban planning. Future developments should apply energy efficient technologies to minimize the environmental impact and potential waste of energy of the building.
+\newpage
+# References
+
+
+
+
+
+
