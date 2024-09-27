@@ -26,6 +26,5 @@ ggplot(building_data, aes(x = Year, y = Units, color = Property_type)) +
        color = "Property Type") +
   theme_minimal()
 
-# create bar graph
 
 

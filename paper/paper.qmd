@@ -140,7 +140,7 @@ data_grouped <- data |>
 # create scatter plot to analysis the change of building evaluation score for different apartment # building type over years
 
 ggplot(data_grouped, aes(x = YEAR_BUILT, y = mean_score, color = PROPERTY_TYPE)) +
-  geom_point(size = 2) +
+  geom_point(size = 1.2) +
   geom_smooth(method = "lm", se = TRUE, size = 0.8) +
   labs(
        x = "Year Built",
